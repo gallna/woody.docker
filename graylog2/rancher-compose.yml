@@ -1,0 +1,4 @@
+server:
+  scale: 1
+mongo:
+  scale: 1

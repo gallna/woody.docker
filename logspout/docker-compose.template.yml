@@ -1,0 +1,30 @@
+version: '2'
+services:
+  logstash:
+    build: ./logstash
+    # links:
+    # - elasticsearch:elasticsearch
+    command:
+    - -f
+    - /logstash/logstash.conf
+    - --config.reload.automatic
+    environment:
+      LOGSPOUT: ignore
+      LS_MODE: dont-debug # use LS_MODE: debug to see rubydebug in std-out
+
+  logspout:
+    image: gliderlabs/logspout:v3.2.2
+    ports:
+    - 8001:80/tcp
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    links:
+    - logstash:logstash
+    command:
+    - syslog+tcp://graylog.wrrr.online:5514
+    environment:
+      LOGSPOUT: ignore
+      SYSLOG_TAG: '{{ with .Container.Config.Labels }}{{ index "io.kubernetes.pod.name" }}{{ index "io.rancher.project.name" }}{{ end }}'
+      SYSLOG_STRUCTURED_DATA: 'labels="{{ with index .Container.Config.Labels }}{{ . }}{{ end }}" hostname="{{ .Container.Config.Hostname }}"{{ with .Container.Config.Labels }} container="{{ index . "io.kubernetes.container.name" }}{{ index . "io.rancher.container.name" }}" project="{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}" stack="{{ index . "io.kubernetes.pod.namespace" }}{{ index . "io.rancher.stack.name" }}" ip="{{ index . "io.rancher.container.ip" }}"{{ end }}'
+    labels:
+      io.rancher.scheduler.global: 'true'

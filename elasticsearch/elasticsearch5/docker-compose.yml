@@ -1,0 +1,54 @@
+master:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
+    expose:
+    - 9200:9200/tcp
+    - 9300:9300/tcp
+    environment:
+      node.master: 'true'
+      node.data: 'false'
+      node.name: '$${HOSTNAME}.elasticsearch'
+      cluster.name: "cluster-dev"
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+      bootstrap.memory_lock: 'false'
+      xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'true'
+      discovery.zen.ping.unicast.hosts: "master.elasticsearch"
+      discovery.zen.minimum_master_nodes: '1'
+      # http.host: '0.0.0.0'
+      # transport.host: '0.0.0.0'
+      network.host: '_site_'
+      network.bind_host: '_site_'
+      network.publish_host: '_site_'
+    labels:
+      io.rancher.container.hostname_override: container_name
+
+data:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
+    expose:
+    - 9200:9200/tcp
+    - 9300:9300/tcp
+    volumes:
+      - elasticsearch-data:/opt/elasticsearch/data
+    environment:
+      node.data: 'true'
+      node.master: 'false'
+      node.name: '$${HOSTNAME}.elasticsearch'
+      cluster.name: "cluster-dev"
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+      bootstrap.memory_lock: 'false'
+      xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'true'
+      discovery.zen.ping.unicast.hosts: "master.elasticsearch"
+      discovery.zen.minimum_master_nodes: '1'
+      # http.host: '0.0.0.0'
+      # transport.host: '0.0.0.0'
+      network.host: '_site_'
+      network.bind_host: '_site_'
+      network.publish_host: '_site_'
+    labels:
+      io.rancher.container.hostname_override: container_name
+
+cerebro:
+  image: yannart/cerebro:0.6.4
+  ports:
+  - 9000:9000/tcp

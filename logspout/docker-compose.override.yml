@@ -1,0 +1,6 @@
+version: '2'
+services:
+  logstash:
+    build: logstash
+    volumes:
+      - ./logstash:/logstash

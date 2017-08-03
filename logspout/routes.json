@@ -1,0 +1,5 @@
+
+{
+    "address": "logstash:5000",
+    "adapter": "syslog+tcp"
+}

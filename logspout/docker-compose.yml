@@ -1,0 +1,17 @@
+version: '2'
+services:
+  kube-logspout:
+    image: gliderlabs/logspout:v3.2.2
+    ports:
+    - 8001:80/tcp
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    command:
+    - syslog+tcp://graylog.wrrr.online:5514
+    environment:
+      LOGSPOUT: ignore
+      SYSLOG_TAG: '{{ with .Container.Config.Labels }}{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}{{ end }}'
+      SYSLOG_STRUCTURED_DATA: 'labels="{{ with index .Container.Config.Labels }}{{ . }}{{ end }}" hostname="{{ .Container.Config.Hostname }}"{{ with .Container.Config.Labels }} container="{{ index . "io.kubernetes.container.name" }}{{ index . "io.rancher.container.name" }}" project="{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}" stack="{{ index . "io.kubernetes.pod.namespace" }}{{ index . "io.rancher.stack.name" }}" ip="{{ index . "io.rancher.container.ip" }}"{{ end }}'
+        labels="{{ with index .Container.Config.Labels }}{{ . }}{{ end }}" hostname="{{ .Container.Config.Hostname }}"{{ with .Container.Config.Labels }} container="{{ index . "io.kubernetes.container.name" }}{{ index . "io.rancher.container.name" }}" project="{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}" stack="{{ index . "io.kubernetes.pod.namespace" }}{{ index . "io.rancher.stack.name" }}" ip="{{ index . "io.rancher.container.ip" }}"{{ end }}
+    labels:
+      io.rancher.scheduler.global: 'true'

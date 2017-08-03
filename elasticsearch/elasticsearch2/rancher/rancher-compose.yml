@@ -1,0 +1,23 @@
+master:
+  scale: 1
+  health_check:
+    port: 9200
+    interval: 20000
+    initializing_timeout: 60000
+    unhealthy_threshold: 5
+    strategy: recreate
+    response_timeout: 20000
+    request_line: GET "/_nodes" "HTTP/1.1"
+    healthy_threshold: 2
+
+data:
+  scale: 2
+  health_check:
+    port: 9200
+    interval: 2000
+    initializing_timeout: 60000
+    unhealthy_threshold: 4
+    strategy: recreate
+    response_timeout: 3000
+    request_line: GET "/_cluster/health" "HTTP/1.0"
+    healthy_threshold: 2

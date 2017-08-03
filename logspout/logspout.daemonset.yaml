@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: logspout
+  namespace: kube-system
+  labels:
+    k8s-app: logspout
+    version: v1
+    kubernetes.io/cluster-service: "true"
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: logspout
+        version: v1
+        kubernetes.io/cluster-service: "true"
+    spec:
+      containers:
+      - name: logspout
+        image: gliderlabs/logspout:v3.2.2
+        command: ["syslog+tcp://graylog.wrrr.online:5514"]
+        volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+          readOnly: false
+        env:
+        - name:  LOGSPOUT
+          value: ignore
+        - name:  SYSLOG_TAG
+          value: '{{ with .Container.Config.Labels }}{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}{{ end }}'
+        - name:  SYSLOG_STRUCTURED_DATA
+          value: 'labels="{{ with index .Container.Config.Labels }}{{ . }}{{ end }}" hostname="{{ .Container.Config.Hostname }}"{{ with .Container.Config.Labels }} container="{{ index . "io.kubernetes.container.name" }}{{ index . "io.rancher.container.name" }}" project="{{ index . "io.kubernetes.pod.name" }}{{ index . "io.rancher.project.name" }}" stack="{{ index . "io.kubernetes.pod.namespace" }}{{ index . "io.rancher.stack.name" }}" ip="{{ index . "io.rancher.container.ip" }}"{{ end }}'
+        securityContext:
+          privileged: true
+      volumes:
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock

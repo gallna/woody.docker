@@ -1,0 +1,44 @@
+cerebro:
+  image: yannart/cerebro:0.6.4
+  ports:
+  - 9000:9000/tcp
+
+kopf:
+  image: lmenezes/elasticsearch-kopf:1.6.2
+  ports:
+  - 80:80/tcp
+  environment:
+    KOPF_ES_SERVERS: ${ELASTICSEARCH_HOST}:9200
+    KOPF_SERVER_NAME: kopf.logspout
+    LOGSPOUT: ignore
+
+master:
+  image: elasticsearch:2.3
+  command:
+  - elasticsearch
+  - -Des.cluster.name=cluster-dev
+  - -Des.node.data=false
+  - -Des.node.master=true
+  - -Des.multicast.enabled=true
+  labels:
+    io.rancher.container.hostname_override: container_name
+    io.rancher.scheduler.affinity:host_label_soft: lifecycle=normal
+    io.rancher.scheduler.affinity:host_label_soft: family=compute-optimized
+
+data:
+  image: elasticsearch:2.3
+  links:
+  - 'master:'
+  command:
+  - elasticsearch
+  - -Des.cluster.name=cluster-dev
+  - -Des.multicast.enabled=false
+  - -Des.discovery.zen.ping.unicast.hosts=master
+  - -Des.discovery.zen.minimum_master_nodes=1
+  - -Des.network.host=_non_loopback:ipv4_
+  - -Des.node.data=true
+  - -Des.node.master=false
+  labels:
+    io.rancher.container.hostname_override: container_name
+    io.rancher.scheduler.affinity:host_label_soft: lifecycle=normal
+    io.rancher.scheduler.affinity:host_label_soft: family=compute-optimized
